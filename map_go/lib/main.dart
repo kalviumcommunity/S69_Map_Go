@@ -93,16 +93,18 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-  title: Row(
-    children: [
-      Image.asset(
-        'assets/images/MapGo_Logo.png',
-        height: 32,
-      ),
-      const SizedBox(width: 8),
+        elevation: 0.8,
+        backgroundColor: Colors.white,
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/images/MapGo_Logo.png',
+              height: 50,
+            ),
+      const SizedBox(width: 10),
       const Text(
         'MapGo',
-        style: TextStyle(fontWeight: FontWeight.w600),
+        style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
       ),
     ],
   ),
