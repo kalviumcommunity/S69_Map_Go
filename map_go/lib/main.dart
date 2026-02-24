@@ -56,6 +56,7 @@ class LoginPage extends StatelessWidget {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       final GoogleSignInAuthentication? googleAuth =
           await googleUser?.authentication;
+
       if (googleAuth != null) {
         final credential = GoogleAuthProvider.credential(
           accessToken: googleAuth.accessToken,
@@ -64,25 +65,94 @@ class LoginPage extends StatelessWidget {
         await FirebaseAuth.instance.signInWithCredential(credential);
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-      ),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: _signInWithGoogle,
-          child: const Text('Sign in with Google'),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Logo
+              Image.asset(
+                'assets/images/MapGo_Logo.png',
+                height: 90,
+              ),
+
+              const SizedBox(height: 24),
+
+              // App name
+              const Text(
+                'MapGo',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              // Tagline
+              const Text(
+                'Find safer routes.\nRun & ride with confidence.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.black54,
+                ),
+              ),
+
+              const SizedBox(height: 40),
+
+              // Google sign-in button
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: _signInWithGoogle,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: const BorderSide(color: Colors.black12),
+                      ),
+                      ),
+                      child: const Text(
+                        'Sign in with Google',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          ),
+                          ),
+                          ),
+                          ),
+
+
+              const SizedBox(height: 24),
+
+              const Text(
+                'By continuing, you agree to our Terms & Privacy Policy',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.black45,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
+
 
 class HomePage extends StatelessWidget {
   final User user;
@@ -180,25 +250,36 @@ class HomePage extends StatelessWidget {
 
             Expanded(
               child: ListView(
-                children: const [
+                children: [
                   _RouteTile(
                     name: 'Cubbon Park Loop',
                     area: 'Bangalore',
                     rating: 4.8,
-                  ),
-                  _RouteTile(
-                    name: 'MG Road Stretch',
-                    area: 'Central Bangalore',
-                    rating: 4.5,
-                  ),
-                  _RouteTile(
-                    name: 'Indiranagar Streets',
-                    area: 'Indiranagar',
-                    rating: 4.2,
-                  ),
-                ],
-              ),
-            ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const RouteDetailPage(),
+                          ),
+                          );
+                          },
+                          ),
+                          _RouteTile(
+                            name: 'MG Road Stretch',
+                            area: 'Central Bangalore',
+                            rating: 4.5,
+                            onTap: () {},
+                            ),
+                            _RouteTile(
+                              name: 'Indiranagar Streets',
+                              area: 'Indiranagar',
+                              rating: 4.2,
+                              onTap: () {},
+                              ),
+                              ],
+                              ),
+                              ),
+
           ],
         ),
       ),
@@ -253,11 +334,13 @@ class _RouteTile extends StatelessWidget {
   final String name;
   final String area;
   final double rating;
+  final VoidCallback onTap;
 
   const _RouteTile({
     required this.name,
     required this.area,
     required this.rating,
+    required this.onTap,
   });
 
   @override
@@ -276,7 +359,185 @@ class _RouteTile extends StatelessWidget {
             Text(rating.toString()),
           ],
         ),
+        onTap: onTap, 
       ),
+    );
+  }
+}
+
+
+// ================= ROUTE DETAIL PAGE =================
+
+class RouteDetailPage extends StatelessWidget {
+  const RouteDetailPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Route Details'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Cubbon Park Loop',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Bangalore • 4.8 ⭐',
+              style: TextStyle(color: Colors.black54),
+            ),
+
+            const SizedBox(height: 24),
+
+            const Text(
+              'Reviews',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            Expanded(
+              child: ListView(
+                children: const [
+                  ReviewTile(
+                    userName: 'Aditi',
+                    rating: 5,
+                    comment: 'Very safe and peaceful in the mornings.',
+                  ),
+                  ReviewTile(
+                    userName: 'Rahul',
+                    rating: 4,
+                    comment: 'Good route, traffic increases after 8am.',
+                  ),
+                  ReviewTile(
+                    userName: 'Neha',
+                    rating: 5,
+                    comment: 'Loved it! Well lit and clean.',
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.rate_review),
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (_) => const AddReviewDialog(),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ================= REVIEW TILE =================
+
+class ReviewTile extends StatelessWidget {
+  final String userName;
+  final int rating;
+  final String comment;
+
+  const ReviewTile({
+    super.key,
+    required this.userName,
+    required this.rating,
+    required this.comment,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  userName,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const Spacer(),
+                Row(
+                  children: List.generate(
+                    rating,
+                    (_) => const Icon(
+                      Icons.star,
+                      size: 16,
+                      color: Colors.amber,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(comment),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ================= ADD REVIEW DIALOG =================
+
+class AddReviewDialog extends StatelessWidget {
+  const AddReviewDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Add Review'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('Rate this route'),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              5,
+              (_) => const Icon(Icons.star_border),
+            ),
+          ),
+          const SizedBox(height: 12),
+          const TextField(
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: 'Write your experience (optional)',
+              border: OutlineInputBorder(),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            // Later: connect to Firestore
+            Navigator.pop(context);
+          },
+          child: const Text('Submit'),
+        ),
+      ],
     );
   }
 }
