@@ -81,30 +81,88 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Hi, ${widget.user.displayName?.split(' ')[0] ?? 'User'}',
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: CircleAvatar(
+              backgroundImage: NetworkImage(widget.user.photoURL ?? ''),
+            ),
+          ),
+        ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: const BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Text(
+                'MapGo',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.route),
+              title: const Text('Start Route'),
+              onTap: () {
+                // Navigate to Start Route page
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.cloud_upload),
+              title: const Text('Uploaded Routes'),
+              onTap: () {
+                // Navigate to Uploaded Routes page
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.explore),
+              title: const Text('Explore Routes'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Profile Settings'),
+              onTap: () {
+                // Navigate to Profile Settings page
+                Navigator.pop(context);
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Log Out'),
+              onTap: () async {
+                await FirebaseAuth.instance.signOut();
+              },
+            ),
+          ],
+        ),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Hi, ${widget.user.displayName?.split(' ')[0] ?? 'User'}',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  CircleAvatar(
-                    backgroundImage: NetworkImage(
-                        widget.user.photoURL ?? ''),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
+
 
               // Search bar
               TextField(
