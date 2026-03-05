@@ -90,6 +90,65 @@ class _MapScreenState extends State<MapScreen> {
       appBar: AppBar(
         title: const Text('Explore Routes'),
       ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Text(
+                'MapGo',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.route),
+              title: const Text('Start Route'),
+              onTap: () {
+                // Navigate to Start Route page
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.cloud_upload),
+              title: const Text('Uploaded Routes'),
+              onTap: () {
+                // Navigate to Uploaded Routes page
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Profile Settings'),
+              onTap: () {
+                // Navigate to Profile Settings page
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.explore),
+              title: const Text('Explore Routes'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Log Out'),
+              onTap: () {
+                // Handle Log Out
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
       body: Stack(
         children: [
           _currentPosition == null
