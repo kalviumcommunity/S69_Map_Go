@@ -5,6 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:map_go/screens/route_detail_page.dart';
 import 'package:map_go/widgets/route_tile.dart';
+import 'package:map_go/screens/profile_page.dart';
 
 class HomePage extends StatefulWidget {
   final User user;
@@ -141,10 +142,15 @@ class _HomePageState extends State<HomePage> {
               leading: const Icon(Icons.settings),
               title: const Text('Profile Settings'),
               onTap: () {
-                // Navigate to Profile Settings page
                 Navigator.pop(context);
-              },
-            ),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ProfilePage(),
+                    ),
+                    );
+                    },
+                    ),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout),
