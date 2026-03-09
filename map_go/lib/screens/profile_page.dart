@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+///Updated UI
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -22,7 +23,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
   String userType = "Runner";
   String? profileImageUrl;
-
   File? imageFile;
 
   @override
@@ -31,7 +31,6 @@ class _ProfilePageState extends State<ProfilePage> {
     loadProfile();
   }
 
-  // LOAD PROFILE FROM FIRESTORE
   Future<void> loadProfile() async {
     final doc =
         await firestore.collection("users").doc(user.uid).get();
@@ -48,7 +47,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  // PICK IMAGE
   Future<void> pickImage() async {
     final picked =
         await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -60,7 +58,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  // UPLOAD IMAGE TO FIREBASE STORAGE
   Future<String?> uploadImage() async {
     if (imageFile == null) return profileImageUrl;
 
@@ -74,7 +71,6 @@ class _ProfilePageState extends State<ProfilePage> {
     return await ref.getDownloadURL();
   }
 
-  // SAVE PROFILE
   Future<void> saveProfile() async {
     final imageUrl = await uploadImage();
 
@@ -94,105 +90,233 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
 
     return Scaffold(
+      backgroundColor: const Color(0xFF121212),
+
       appBar: AppBar(
+        backgroundColor: const Color(0xFF1E1E1E),
+        elevation: 0,
         title: const Text("Profile Settings"),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: ListView(
-          children: [
 
-            // PROFILE IMAGE
-            Center(
-              child: GestureDetector(
-                onTap: pickImage,
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundImage: imageFile != null
-                      ? FileImage(imageFile!)
-                      : profileImageUrl != null
-                          ? NetworkImage(profileImageUrl!)
-                          : null,
-                  child: profileImageUrl == null && imageFile == null
-                      ? const Icon(Icons.camera_alt)
-                      : null,
-                ),
-              ),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+
+          // PROFILE HEADER CARD
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E1E),
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.5),
+                  blurRadius: 15,
+                  offset: const Offset(0, 6),
+                )
+              ],
             ),
 
-            const SizedBox(height: 20),
+            child: Column(
+              children: [
 
-            // NAME
-            TextField(
+                Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+
+                    GestureDetector(
+                      onTap: pickImage,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            colors: [
+                              Colors.greenAccent,
+                              Colors.tealAccent
+                            ],
+                          ),
+                        ),
+
+                        child: CircleAvatar(
+                          radius: 55,
+                          backgroundColor: Colors.black,
+                          backgroundImage: imageFile != null
+                              ? FileImage(imageFile!)
+                              : profileImageUrl != null
+                                  ? NetworkImage(profileImageUrl!)
+                                  : null,
+                          child: profileImageUrl == null && imageFile == null
+                              ? const Icon(Icons.person, size: 45)
+                              : null,
+                        ),
+                      ),
+                    ),
+
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.greenAccent,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.all(6),
+                      child: const Icon(
+                        Icons.camera_alt,
+                        size: 18,
+                        color: Colors.black,
+                      ),
+                    )
+
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                Text(
+                  nameController.text.isEmpty
+                      ? "Your Name"
+                      : nameController.text,
+                  style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold),
+                ),
+
+                const SizedBox(height: 4),
+
+                Text(
+                  user.email ?? "",
+                  style: const TextStyle(color: Colors.grey),
+                ),
+
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 25),
+
+          // NAME FIELD
+          _inputCard(
+            child: TextField(
               controller: nameController,
               decoration: const InputDecoration(
                 labelText: "Name",
-                border: OutlineInputBorder(),
+                border: InputBorder.none,
               ),
             ),
+          ),
 
-            const SizedBox(height: 15),
+          const SizedBox(height: 16),
 
-            // EMAIL
-            TextField(
+          // EMAIL
+          _inputCard(
+            child: TextField(
               enabled: false,
               decoration: InputDecoration(
                 labelText: "Email",
-                border: const OutlineInputBorder(),
+                border: InputBorder.none,
                 hintText: user.email,
               ),
             ),
+          ),
 
-            const SizedBox(height: 20),
+          const SizedBox(height: 20),
 
-            const Text(
-              "User Type",
-              style: TextStyle(fontWeight: FontWeight.bold),
+          const Text(
+            "User Type",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
             ),
+          ),
 
-            RadioListTile(
-              value: "Runner",
-              groupValue: userType,
-              title: const Text("Runner"),
-              onChanged: (value) {
-                setState(() {
-                  userType = value!;
-                });
-              },
+          const SizedBox(height: 8),
+
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E1E),
+              borderRadius: BorderRadius.circular(14),
             ),
+            child: Column(
+              children: [
 
-            RadioListTile(
-              value: "Cyclist",
-              groupValue: userType,
-              title: const Text("Cyclist"),
-              onChanged: (value) {
-                setState(() {
-                  userType = value!;
-                });
-              },
+                RadioListTile(
+                  activeColor: Colors.greenAccent,
+                  value: "Runner",
+                  groupValue: userType,
+                  title: const Text("Runner"),
+                  onChanged: (value) {
+                    setState(() {
+                      userType = value!;
+                    });
+                  },
+                ),
+
+                RadioListTile(
+                  activeColor: Colors.greenAccent,
+                  value: "Cyclist",
+                  groupValue: userType,
+                  title: const Text("Cyclist"),
+                  onChanged: (value) {
+                    setState(() {
+                      userType = value!;
+                    });
+                  },
+                ),
+
+              ],
             ),
+          ),
 
-            const SizedBox(height: 20),
+          const SizedBox(height: 20),
 
-            // BIO
-            TextField(
+          // BIO
+          _inputCard(
+            child: TextField(
               controller: bioController,
               maxLines: 3,
               decoration: const InputDecoration(
                 labelText: "Bio",
-                border: OutlineInputBorder(),
+                border: InputBorder.none,
               ),
             ),
+          ),
 
-            const SizedBox(height: 30),
+          const SizedBox(height: 30),
 
-            ElevatedButton(
+          // SAVE BUTTON
+          SizedBox(
+            height: 52,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.greenAccent,
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
               onPressed: saveProfile,
-              child: const Text("Save Profile"),
+              child: const Text(
+                "Save Profile",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-          ],
-        ),
+          ),
+
+        ],
       ),
+    );
+  }
+
+  Widget _inputCard({required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E1E1E),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: child,
     );
   }
 }

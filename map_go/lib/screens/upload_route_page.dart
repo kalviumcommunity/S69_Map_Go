@@ -8,113 +8,171 @@ class UploadRoutePage extends StatefulWidget {
 }
 
 class _UploadRoutePageState extends State<UploadRoutePage> {
-  final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController routeNameController = TextEditingController();
-  final TextEditingController areaController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController locationController = TextEditingController();
   final TextEditingController distanceController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
 
-  int safetyRating = 3;
+  String difficulty = "Easy";
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF0F1115),
       appBar: AppBar(
-        title: const Text('Upload Route'),
+        backgroundColor: const Color(0xFF0F1115),
+        elevation: 0,
+        title: const Text("Upload Route"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              const Text(
-                'Add a new route',
+        child: ListView(
+          children: [
+
+            const SizedBox(height: 10),
+
+            const Text(
+              "Route Name",
+              style: TextStyle(color: Colors.white70),
+            ),
+
+            const SizedBox(height: 8),
+
+            _inputField(nameController, "Enter route name"),
+
+            const SizedBox(height: 20),
+
+            const Text(
+              "Location",
+              style: TextStyle(color: Colors.white70),
+            ),
+
+            const SizedBox(height: 8),
+
+            _inputField(locationController, "Enter location"),
+
+            const SizedBox(height: 20),
+
+            const Text(
+              "Distance (km)",
+              style: TextStyle(color: Colors.white70),
+            ),
+
+            const SizedBox(height: 8),
+
+            _inputField(distanceController, "Enter distance"),
+
+            const SizedBox(height: 20),
+
+            const Text(
+              "Difficulty",
+              style: TextStyle(color: Colors.white70),
+            ),
+
+            const SizedBox(height: 8),
+
+            _difficultyDropdown(),
+
+            const SizedBox(height: 20),
+
+            const Text(
+              "Description",
+              style: TextStyle(color: Colors.white70),
+            ),
+
+            const SizedBox(height: 8),
+
+            _descriptionField(),
+
+            const SizedBox(height: 30),
+
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF00C853),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () {
+                // Later we connect to Firebase / database
+                print("Route Uploaded");
+              },
+              child: const Text(
+                "Upload Route",
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 20),
-              TextFormField(
-                controller: routeNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Route Name',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Enter route name' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: areaController,
-                decoration: const InputDecoration(
-                  labelText: 'Area',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Enter area' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: distanceController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Distance (km)',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Enter distance' : null,
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Safety Rating',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  5,
-                  (index) => IconButton(
-                    icon: Icon(
-                      index < safetyRating ? Icons.star : Icons.star_border,
-                      color: Colors.amber,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        safetyRating = index + 1;
-                      });
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      // Later: Save to Firestore
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Route uploaded successfully!'),
-                        ),
-                      );
-
-                      Navigator.pop(context);
-                    }
-                  },
-                  child: const Text(
-                    'Submit Route',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
-              ),
-            ],
-          ),
+            )
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _inputField(TextEditingController controller, String hint) {
+    return TextField(
+      controller: controller,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.grey),
+        filled: true,
+        fillColor: const Color(0xFF1C1F26),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+
+  Widget _descriptionField() {
+    return TextField(
+      controller: descriptionController,
+      maxLines: 4,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        hintText: "Describe the route...",
+        hintStyle: const TextStyle(color: Colors.grey),
+        filled: true,
+        fillColor: const Color(0xFF1C1F26),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+
+  Widget _difficultyDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1C1F26),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: DropdownButton(
+        dropdownColor: const Color(0xFF1C1F26),
+        value: difficulty,
+        underline: const SizedBox(),
+        style: const TextStyle(color: Colors.white),
+        items: ["Easy", "Moderate", "Hard"]
+            .map(
+              (e) => DropdownMenuItem(
+                value: e,
+                child: Text(e),
+              ),
+            )
+            .toList(),
+        onChanged: (value) {
+          setState(() {
+            difficulty = value!;
+          });
+        },
       ),
     );
   }
