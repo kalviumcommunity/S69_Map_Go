@@ -3,9 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:map_go/screens/route_detail_page.dart';
-import 'package:map_go/widgets/route_tile.dart';
 import 'package:map_go/screens/profile_page.dart';
+import 'package:map_go/screens/route_detail_page.dart';
+import 'package:map_go/screens/explore_routes.dart';
+import 'package:map_go/widgets/route_tile.dart';
+import 'package:map_go/screens/start_route_page.dart';
 
 class HomePage extends StatefulWidget {
   final User user;
@@ -17,6 +19,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+
   GoogleMapController? _mapController;
   Position? _currentPosition;
   final Set<Marker> _markers = {};
@@ -28,243 +31,389 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
 
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+
     if (!serviceEnabled) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text(
-              'Location services are disabled. Please enable the services')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Enable location services")),
+      );
       return;
     }
 
-    permission = await Geolocator.checkPermission();
+    LocationPermission permission = await Geolocator.checkPermission();
+
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Location permissions are denied')));
-        return;
-      }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text(
-              'Location permissions are permanently denied, we cannot request permissions.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Location permission permanently denied")),
+      );
       return;
     }
 
-    Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
+    Position position = await Geolocator.getCurrentPosition();
+
     setState(() {
+
       _currentPosition = position;
+
       _markers.add(
         Marker(
-          markerId: const MarkerId('currentLocation'),
+          markerId: const MarkerId("me"),
           position: LatLng(position.latitude, position.longitude),
-          infoWindow: const InfoWindow(title: 'My Location'),
+          infoWindow: const InfoWindow(title: "My Location"),
         ),
       );
-    });
 
-    _mapController?.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: LatLng(position.latitude, position.longitude),
-          zoom: 15.0,
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Scaffold(
+
+      backgroundColor: const Color(0xFF121212),
+
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF1E1E1E),
+        elevation: 0,
+        title: Text(
+          "Hi, ${widget.user.displayName?.split(" ")[0] ?? "User"} 👋",
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: CircleAvatar(
+              backgroundColor: Colors.grey.shade800,
+              backgroundImage: widget.user.photoURL != null
+                  ? NetworkImage(widget.user.photoURL!)
+                  : null,
+              child: widget.user.photoURL == null
+                  ? const Icon(Icons.person, color: Colors.white)
+                  : null,
+            ),
+          )
+        ],
+      ),
+
+      drawer: Drawer(
+        backgroundColor: const Color(0xFF1E1E1E),
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+
+            DrawerHeader(
+              decoration: const BoxDecoration(color: Colors.black87),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+
+                  const CircleAvatar(
+                    radius: 28,
+                    child: Icon(Icons.person),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  Text(
+                    widget.user.displayName ?? "User",
+                    style: const TextStyle(color: Colors.white, fontSize: 18),
+                  ),
+
+                  Text(
+                    widget.user.email ?? "",
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+
+                ],
+              ),
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.route, color: Colors.white),
+              title: const Text("Start Route"),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.cloud_upload, color: Colors.white),
+              title: const Text("Uploaded Routes"),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.explore, color: Colors.white),
+              title: const Text("Explore Routes"),
+              onTap: () {
+
+                Navigator.pop(context);
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ExploreRoutesPage(),
+                  ),
+                );
+
+              },
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.settings, color: Colors.white),
+              title: const Text("Profile Settings"),
+              onTap: () {
+
+                Navigator.pop(context);
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ProfilePage(),
+                  ),
+                );
+
+              },
+            ),
+
+            const Divider(),
+
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.white),
+              title: const Text("Log Out"),
+              onTap: () async {
+                await FirebaseAuth.instance.signOut();
+              },
+            ),
+
+          ],
+        ),
+      ),
+
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+
+            children: [
+
+              // SEARCH BAR
+              TextField(
+                decoration: InputDecoration(
+                  hintText: "Search routes or areas",
+                  prefixIcon: const Icon(Icons.search),
+                  filled: true,
+                  fillColor: const Color(0xFF1E1E1E),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // MAP CARD
+              Container(
+                height: 210,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.4),
+                      blurRadius: 10,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: _currentPosition == null
+                      ? const Center(child: CircularProgressIndicator())
+                      : GoogleMap(
+                          onMapCreated: (controller) {
+                            _mapController = controller;
+                          },
+                          initialCameraPosition: CameraPosition(
+                            target: LatLng(
+                              _currentPosition!.latitude,
+                              _currentPosition!.longitude,
+                            ),
+                            zoom: 15,
+                          ),
+                          markers: _markers,
+                          myLocationEnabled: true,
+                        ),
+                ),
+              ),
+
+              const SizedBox(height: 22),
+
+              const Text(
+                "Quick Actions",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+
+              const SizedBox(height: 12),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+
+                  _actionButton(Icons.route, "Start", () {
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const StartRoutePage(),
+    ),
+  );
+
+}),
+
+                  _actionButton(Icons.upload, "Upload", () {}),
+
+                  _actionButton(Icons.explore, "Explore", () {
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ExploreRoutesPage(),
+                      ),
+                    );
+
+                  }),
+
+                ],
+              ),
+
+              const SizedBox(height: 22),
+
+              const Text(
+                "Popular Routes",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+
+              const SizedBox(height: 10),
+
+              Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection("routes")
+                      .snapshots(),
+
+                  builder: (context, snapshot) {
+
+                    if (snapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+
+                    // DEMO DATA IF EMPTY
+                    if (!snapshot.hasData ||
+                        snapshot.data!.docs.isEmpty) {
+
+                      final demoRoutes = [
+                        {"name": "Cubbon Park Loop", "area": "Bangalore", "rating": 4.8},
+                        {"name": "MG Road Stretch", "area": "Central Bangalore", "rating": 4.5},
+                        {"name": "Indiranagar Streets", "area": "Indiranagar", "rating": 4.2},
+                      ];
+
+                      return ListView.builder(
+                        itemCount: demoRoutes.length,
+                        itemBuilder: (context, index) {
+
+                          final route = demoRoutes[index];
+
+                          return RouteTile(
+                            name: route["name"] as String,
+                            area: route["area"] as String,
+                            rating: route["rating"] as double,
+                            onTap: () {},
+                          );
+
+                        },
+                      );
+                    }
+
+                    final routes = snapshot.data!.docs;
+
+                    return ListView.builder(
+                      itemCount: routes.length,
+                      itemBuilder: (context, index) {
+
+                        final route = routes[index];
+
+                        return RouteTile(
+                          name: route["name"],
+                          area: route["area"],
+                          rating: (route["rating"] as num).toDouble(),
+                          onTap: () {
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => RouteDetailPage(
+                                  routeId: route.id,
+                                ),
+                              ),
+                            );
+
+                          },
+                        );
+
+                      },
+                    );
+
+                  },
+                ),
+              ),
+
+            ],
+          ),
         ),
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Hi, ${widget.user.displayName?.split(' ')[0] ?? 'User'}',
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              backgroundImage: NetworkImage(widget.user.photoURL ?? ''),
+  Widget _actionButton(
+      IconData icon,
+      String label,
+      VoidCallback onTap,
+      ) {
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+
+          Container(
+            height: 56,
+            width: 56,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E1E),
+              borderRadius: BorderRadius.circular(14),
             ),
+            child: Icon(icon, color: Colors.greenAccent),
           ),
+
+          const SizedBox(height: 6),
+
+          Text(label),
+
         ],
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              decoration: const BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Text(
-                'MapGo',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.route),
-              title: const Text('Start Route'),
-              onTap: () {
-                // Navigate to Start Route page
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.cloud_upload),
-              title: const Text('Uploaded Routes'),
-              onTap: () {
-                // Navigate to Uploaded Routes page
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.explore),
-              title: const Text('Explore Routes'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Profile Settings'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ProfilePage(),
-                    ),
-                    );
-                    },
-                    ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Log Out'),
-              onTap: () async {
-                await FirebaseAuth.instance.signOut();
-              },
-            ),
-          ],
-        ),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-
-
-              // Search bar
-              TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search for areas',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.grey),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Google Map
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: _currentPosition == null
-                      ? const Center(child: CircularProgressIndicator())
-                      : GoogleMap(
-                          onMapCreated: (GoogleMapController controller) {
-                            _mapController = controller;
-                          },
-                          initialCameraPosition: CameraPosition(
-                            target: LatLng(_currentPosition!.latitude,
-                                _currentPosition!.longitude),
-                            zoom: 15.0,
-                          ),
-                          markers: _markers,
-                          myLocationEnabled: true,
-                          myLocationButtonEnabled: false,
-                        ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Recently Viewed
-              const Text(
-                'Recently viewed',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              // Recently Viewed List
-              Expanded(
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance.collection('routes').snapshots(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    final routes = snapshot.data!.docs;
-                    return ListView.builder(
-                      itemCount: routes.length,
-                      itemBuilder: (context, index) {
-                        final route = routes[index];
-                        return RouteTile(
-                          name: route['name'],
-                          area: route['area'],
-                          rating: (route['rating'] as num).toDouble(),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => RouteDetailPage(routeId: route.id),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-
-              // Explore More Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text('Explore more routes'),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

@@ -14,11 +14,33 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Map Go',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+  title: 'MapGo',
+  debugShowCheckedModeBanner: false,
+  theme: ThemeData.dark().copyWith(
+    scaffoldBackgroundColor: const Color(0xFF121212),
+
+    colorScheme: const ColorScheme.dark(
+      primary: Color(0xFF4CAF50),
+      secondary: Color(0xFF81C784),
+    ),
+
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Color(0xFF1E1E1E),
+      elevation: 0,
+    ),
+
+    cardColor: const Color(0xFF1E1E1E),
+
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: const Color(0xFF1E1E1E),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide.none,
       ),
-      home: const AuthWrapper(),
-    );
+    ),
+  ),
+  home: const AuthWrapper(),
+);
   }
 }
