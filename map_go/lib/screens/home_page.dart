@@ -9,7 +9,7 @@ import 'package:map_go/screens/explore_routes.dart';
 import 'package:map_go/screens/start_route_page.dart';
 import 'package:map_go/screens/upload_route_page.dart';
 import 'package:map_go/widgets/route_tile.dart';
-
+//minor update to home page UI and added quick action buttons
 class HomePage extends StatefulWidget {
   final User user;
 
