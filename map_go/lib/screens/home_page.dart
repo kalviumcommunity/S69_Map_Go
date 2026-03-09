@@ -6,11 +6,10 @@ import 'package:geolocator/geolocator.dart';
 import 'package:map_go/screens/profile_page.dart';
 import 'package:map_go/screens/route_detail_page.dart';
 import 'package:map_go/screens/explore_routes.dart';
-import 'package:map_go/widgets/route_tile.dart';
 import 'package:map_go/screens/start_route_page.dart';
-import 'package:map_go/screens/upload_route_page.dart'; 
-
-
+import 'package:map_go/screens/upload_route_page.dart';
+import 'package:map_go/widgets/route_tile.dart';
+//minor update to home page UI and added quick action buttons
 class HomePage extends StatefulWidget {
   final User user;
 
@@ -141,48 +140,54 @@ class _HomePageState extends State<HomePage> {
               title: const Text("Start Route"),
               onTap: () {
                 Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const StartRoutePage(),
+                  ),
+                );
               },
             ),
 
             ListTile(
               leading: const Icon(Icons.cloud_upload, color: Colors.white),
-              title: const Text("Uploaded Routes"),
+              title: const Text("Upload Route"),
               onTap: () {
                 Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const UploadRoutePage(),
+                  ),
+                );
               },
             ),
 
             ListTile(
               leading: const Icon(Icons.explore, color: Colors.white),
               title: const Text("Explore Routes"),
-              onTap: {
-
+              onTap: () {
                 Navigator.pop(context);
-
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => const ExploreRoutesPage(),
                   ),
                 );
-
               },
             ),
 
             ListTile(
               leading: const Icon(Icons.settings, color: Colors.white),
               title: const Text("Profile Settings"),
-              onTap: {
-
+              onTap: () {
                 Navigator.pop(context);
-
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => const ProfilePage(),
                   ),
                 );
-
               },
             ),
 
@@ -271,36 +276,30 @@ class _HomePageState extends State<HomePage> {
                 children: [
 
                   _actionButton(Icons.route, "Start", () {
-
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => const StartRoutePage(),
                       ),
                     );
-
                   }),
 
                   _actionButton(Icons.upload, "Upload", () {
-
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => const UploadRoutePage(),
                       ),
                     );
-
                   }),
 
                   _actionButton(Icons.explore, "Explore", () {
-
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => const ExploreRoutesPage(),
                       ),
                     );
-
                   }),
 
                 ],
@@ -369,7 +368,6 @@ class _HomePageState extends State<HomePage> {
                           area: route["area"],
                           rating: (route["rating"] as num).toDouble(),
                           onTap: () {
-
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -378,7 +376,6 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                             );
-
                           },
                         );
 
