@@ -8,6 +8,8 @@ import 'package:map_go/screens/route_detail_page.dart';
 import 'package:map_go/screens/explore_routes.dart';
 import 'package:map_go/widgets/route_tile.dart';
 import 'package:map_go/screens/start_route_page.dart';
+import 'package:map_go/screens/upload_route_page.dart'; 
+
 
 class HomePage extends StatefulWidget {
   final User user;
@@ -153,7 +155,7 @@ class _HomePageState extends State<HomePage> {
             ListTile(
               leading: const Icon(Icons.explore, color: Colors.white),
               title: const Text("Explore Routes"),
-              onTap: () {
+              onTap: {
 
                 Navigator.pop(context);
 
@@ -170,7 +172,7 @@ class _HomePageState extends State<HomePage> {
             ListTile(
               leading: const Icon(Icons.settings, color: Colors.white),
               title: const Text("Profile Settings"),
-              onTap: () {
+              onTap: {
 
                 Navigator.pop(context);
 
@@ -207,7 +209,6 @@ class _HomePageState extends State<HomePage> {
 
             children: [
 
-              // SEARCH BAR
               TextField(
                 decoration: InputDecoration(
                   hintText: "Search routes or areas",
@@ -223,7 +224,6 @@ class _HomePageState extends State<HomePage> {
 
               const SizedBox(height: 20),
 
-              // MAP CARD
               Container(
                 height: 210,
                 decoration: BoxDecoration(
@@ -272,16 +272,25 @@ class _HomePageState extends State<HomePage> {
 
                   _actionButton(Icons.route, "Start", () {
 
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => const StartRoutePage(),
-    ),
-  );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const StartRoutePage(),
+                      ),
+                    );
 
-}),
+                  }),
 
-                  _actionButton(Icons.upload, "Upload", () {}),
+                  _actionButton(Icons.upload, "Upload", () {
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const UploadRoutePage(),
+                      ),
+                    );
+
+                  }),
 
                   _actionButton(Icons.explore, "Explore", () {
 
@@ -321,7 +330,6 @@ class _HomePageState extends State<HomePage> {
                       );
                     }
 
-                    // DEMO DATA IF EMPTY
                     if (!snapshot.hasData ||
                         snapshot.data!.docs.isEmpty) {
 
