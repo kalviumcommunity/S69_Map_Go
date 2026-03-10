@@ -23,6 +23,13 @@ class _RouteDetailPageState extends State<RouteDetailPage> {
         FirebaseFirestore.instance.collection('routes').doc(widget.routeId).get();
   }
 
+  void _refreshRoute() {
+    setState(() {
+      _routeFuture =
+          FirebaseFirestore.instance.collection('routes').doc(widget.routeId).get();
+    });
+  }
+
   void _launchMaps(double lat, double lng) async {
     final url = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
     if (await canLaunchUrl(Uri.parse(url))) {
@@ -50,7 +57,7 @@ class _RouteDetailPageState extends State<RouteDetailPage> {
 
           var routeData = snapshot.data!.data() as Map<String, dynamic>;
           var reviews = (routeData['reviews'] as List<dynamic>?) ?? [];
-          var photoUrl = (routeData['photos'] as List<dynamic>?)?.first;
+          var photoUrls = (routeData['photos'] as List<dynamic>?) ?? [];
 
           return SingleChildScrollView(
             child: Padding(
@@ -58,75 +65,68 @@ class _RouteDetailPageState extends State<RouteDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Photo
-                  Container(
-                    height: 200,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: Colors.grey[200],
-                      image: photoUrl != null
-                          ? DecorationImage(
-                              image: NetworkImage(photoUrl),
-                              fit: BoxFit.cover,
-                            )
-                          : null,
+                  // Name
+                  Text(
+                    routeData['name'] ?? 'Unnamed Route',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
                     ),
-                    child: photoUrl == null
-                        ? const Center(child: Text('No Photos Available'))
-                        : null,
                   ),
+                  const SizedBox(height: 10),
+
+                  // Address, Duration, Description
+                  Text('Address: ${routeData['address'] ?? 'Not provided'}'),
+                  Text('Duration: ${routeData['duration'] ?? 'Not provided'}'),
+                  Text('Description: ${routeData['description'] ?? 'Not provided'}'),
                   const SizedBox(height: 20),
 
-                  // Name and Directions
+                  // Safety Rating
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              routeData['name'] ?? 'Unnamed Route',
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            Row(
-                              children: [
-                                const Icon(Icons.star,
-                                    color: Colors.amber, size: 18),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${routeData['rating']?.toStringAsFixed(1) ?? 'N/A'} (${reviews.length} reviews)',
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          final location = routeData['location'] as GeoPoint?;
-                          if (location != null) {
-                            _launchMaps(location.latitude, location.longitude);
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          shape: const CircleBorder(),
-                          padding: const EdgeInsets.all(16),
-                        ),
-                        child: const Text('Directions'),
-                      ),
+                      const Text('Safety Rating: '),
+                      ...List.generate(5, (index) {
+                        return Icon(
+                          index < (routeData['safetyRating'] ?? 0)
+                              ? Icons.star
+                              : Icons.star_border,
+                          color: Colors.amber,
+                        );
+                      }),
                     ],
                   ),
                   const SizedBox(height: 20),
 
-                  // Comments
+                  // Photos
                   const Text(
-                    'Comments',
+                    'Photos',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  if (photoUrls.isNotEmpty)
+                    SizedBox(
+                      height: 100,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: photoUrls.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: Image.network(photoUrls[index]),
+                          );
+                        },
+                      ),
+                    )
+                  else
+                    const Text('Photos not uploaded'),
+                  const SizedBox(height: 20),
+
+                  // Reviews
+                  const Text(
+                    'Reviews',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -142,7 +142,7 @@ class _RouteDetailPageState extends State<RouteDetailPage> {
                       );
                     }).toList()
                   else
-                    const Text('No comments yet.'),
+                    const Text('No reviews yet. Be the first to write one!'),
                 ],
               ),
             ),
@@ -155,7 +155,7 @@ class _RouteDetailPageState extends State<RouteDetailPage> {
           showDialog(
             context: context,
             builder: (_) => AddReviewDialog(routeId: widget.routeId),
-          );
+          ).then((_) => _refreshRoute());
         },
       ),
     );

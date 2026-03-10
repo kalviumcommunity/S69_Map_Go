@@ -18,7 +18,6 @@ class _ProfilePageState extends State<ProfilePage> {
   final user = FirebaseAuth.instance.currentUser!;
   final firestore = FirebaseFirestore.instance;
 
-  final nameController = TextEditingController();
   final bioController = TextEditingController();
 
   String userType = "Runner";
@@ -39,7 +38,6 @@ class _ProfilePageState extends State<ProfilePage> {
       final data = doc.data()!;
 
       setState(() {
-        nameController.text = data["name"] ?? "";
         bioController.text = data["bio"] ?? "";
         userType = data["userType"] ?? "Runner";
         profileImageUrl = data["profileImage"];
@@ -75,12 +73,12 @@ class _ProfilePageState extends State<ProfilePage> {
     final imageUrl = await uploadImage();
 
     await firestore.collection("users").doc(user.uid).set({
-      "name": nameController.text,
+      "name": user.displayName,
       "email": user.email,
       "bio": bioController.text,
       "userType": userType,
       "profileImage": imageUrl
-    });
+    }, SetOptions(merge: true));
 
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text("Profile Saved")));
@@ -126,30 +124,21 @@ class _ProfilePageState extends State<ProfilePage> {
 
                     GestureDetector(
                       onTap: pickImage,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: const LinearGradient(
-                            colors: [
-                              Colors.greenAccent,
-                              Colors.tealAccent
-                            ],
-                          ),
-                        ),
-
-                        child: CircleAvatar(
-                          radius: 55,
-                          backgroundColor: Colors.black,
-                          backgroundImage: imageFile != null
-                              ? FileImage(imageFile!)
-                              : profileImageUrl != null
-                                  ? NetworkImage(profileImageUrl!)
+                      child: CircleAvatar(
+                        radius: 55,
+                        backgroundColor: Colors.black,
+                        backgroundImage: imageFile != null
+                            ? FileImage(imageFile!)
+                            : (profileImageUrl != null && profileImageUrl!.isNotEmpty)
+                                ? NetworkImage(profileImageUrl!)
+                                : (user.photoURL != null && user.photoURL!.isNotEmpty)
+                                  ? NetworkImage(user.photoURL!)
                                   : null,
-                          child: profileImageUrl == null && imageFile == null
-                              ? const Icon(Icons.person, size: 45)
-                              : null,
-                        ),
+                        child: (profileImageUrl == null || profileImageUrl!.isEmpty) &&
+                                (user.photoURL == null || user.photoURL!.isEmpty) &&
+                                imageFile == null
+                            ? const Icon(Icons.person, size: 45)
+                            : null,
                       ),
                     ),
 
@@ -172,9 +161,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 const SizedBox(height: 16),
 
                 Text(
-                  nameController.text.isEmpty
-                      ? "Your Name"
-                      : nameController.text,
+                  user.displayName ?? "Your Name",
                   style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold),
@@ -193,88 +180,41 @@ class _ProfilePageState extends State<ProfilePage> {
 
           const SizedBox(height: 25),
 
-          // NAME FIELD
-          _inputCard(
-            child: TextField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: "Name",
-                border: InputBorder.none,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // EMAIL
-          _inputCard(
-            child: TextField(
-              enabled: false,
-              decoration: InputDecoration(
-                labelText: "Email",
-                border: InputBorder.none,
-                hintText: user.email,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          const Text(
-            "User Type",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-
-          const SizedBox(height: 8),
-
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E1E1E),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Column(
-              children: [
-
-                RadioListTile(
-                  activeColor: Colors.greenAccent,
-                  value: "Runner",
-                  groupValue: userType,
-                  title: const Text("Runner"),
-                  onChanged: (value) {
-                    setState(() {
-                      userType = value!;
-                    });
-                  },
-                ),
-
-                RadioListTile(
-                  activeColor: Colors.greenAccent,
-                  value: "Cyclist",
-                  groupValue: userType,
-                  title: const Text("Cyclist"),
-                  onChanged: (value) {
-                    setState(() {
-                      userType = value!;
-                    });
-                  },
-                ),
-
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // BIO
+          // BIO FIELD
           _inputCard(
             child: TextField(
               controller: bioController,
               maxLines: 3,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: "Bio",
+                hintText: bioController.text.isEmpty ? "Enter your bio here" : "",
+                border: InputBorder.none,
+                suffixIcon: const Icon(Icons.edit),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 15),
+
+          // USER TYPE
+          _inputCard(
+            child: DropdownButtonFormField<String>(
+              value: userType,
+              items: ["Runner", "Cyclist"]
+                  .map((type) => DropdownMenuItem(
+                        value: type,
+                        child: Text(type),
+                      ))
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    userType = value;
+                  });
+                }
+              },
+              decoration: const InputDecoration(
+                labelText: "User Type",
                 border: InputBorder.none,
               ),
             ),
@@ -283,23 +223,20 @@ class _ProfilePageState extends State<ProfilePage> {
           const SizedBox(height: 30),
 
           // SAVE BUTTON
-          SizedBox(
-            height: 52,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.greenAccent,
-                foregroundColor: Colors.black,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
+          ElevatedButton(
+            onPressed: saveProfile,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.greenAccent,
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
               ),
-              onPressed: saveProfile,
-              child: const Text(
-                "Save Profile",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+            ),
+            child: const Text(
+              "Save Profile",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
