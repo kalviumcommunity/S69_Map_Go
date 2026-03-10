@@ -15,6 +15,7 @@ class _UploadRoutePageState extends State<UploadRoutePage> {
   final TextEditingController descriptionController = TextEditingController();
 
   String difficulty = "Easy";
+  int rating = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -84,6 +85,17 @@ class _UploadRoutePageState extends State<UploadRoutePage> {
             const SizedBox(height: 8),
 
             _descriptionField(),
+
+            const SizedBox(height: 20),
+
+            const Text(
+              "Rating",
+              style: TextStyle(color: Colors.white70),
+            ),
+
+            const SizedBox(height: 8),
+
+            _ratingBar(),
 
             const SizedBox(height: 30),
 
@@ -174,6 +186,25 @@ class _UploadRoutePageState extends State<UploadRoutePage> {
           });
         },
       ),
+    );
+  }
+
+  Widget _ratingBar() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(5, (index) {
+        return IconButton(
+          onPressed: () {
+            setState(() {
+              rating = index + 1;
+            });
+          },
+          icon: Icon(
+            index < rating ? Icons.star : Icons.star_border,
+            color: Colors.amber,
+          ),
+        );
+      }),
     );
   }
 }

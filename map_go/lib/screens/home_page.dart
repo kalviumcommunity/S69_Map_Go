@@ -114,9 +114,14 @@ class _HomePageState extends State<HomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
 
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 28,
-                    child: Icon(Icons.person),
+                    backgroundImage: widget.user.photoURL != null
+                        ? NetworkImage(widget.user.photoURL!)
+                        : null,
+                    child: widget.user.photoURL == null
+                        ? const Icon(Icons.person)
+                        : null,
                   ),
 
                   const SizedBox(height: 10),
@@ -271,39 +276,7 @@ class _HomePageState extends State<HomePage> {
 
               const SizedBox(height: 12),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-
-                  _actionButton(Icons.route, "Start", () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const StartRoutePage(),
-                      ),
-                    );
-                  }),
-
-                  _actionButton(Icons.upload, "Upload", () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const UploadRoutePage(),
-                      ),
-                    );
-                  }),
-
-                  _actionButton(Icons.explore, "Explore", () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const ExploreRoutesPage(),
-                      ),
-                    );
-                  }),
-
-                ],
-              ),
+              _buildQuickActions(context),
 
               const SizedBox(height: 22),
 
@@ -393,31 +366,57 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _actionButton(
-      IconData icon,
-      String label,
-      VoidCallback onTap,
-      ) {
+  Widget _buildQuickActions(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _buildActionCard(
+          context,
+          Icons.route, "Start", () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const StartRoutePage(),
+              ),
+            );
+          }),
+        _buildActionCard(
+          context,
+          Icons.upload, "Upload", () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const UploadRoutePage(),
+              ),
+            );
+          }),
+        _buildActionCard(
+          context,
+          Icons.explore, "Explore", () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ExploreRoutesPage(),
+              ),
+            );
+          }),
+      ],
+    );
+  }
 
+  Widget _buildActionCard(
+      BuildContext context, IconData icon, String label, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
         children: [
-
-          Container(
-            height: 56,
-            width: 56,
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E1E1E),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: Colors.greenAccent),
+          CircleAvatar(
+            radius: 30,
+            backgroundColor: const Color(0xFF1E1E1E),
+            child: Icon(icon, size: 28, color: Colors.white),
           ),
-
-          const SizedBox(height: 6),
-
-          Text(label),
-
+          const SizedBox(height: 8),
+          Text(label, style: const TextStyle(color: Colors.white)),
         ],
       ),
     );
