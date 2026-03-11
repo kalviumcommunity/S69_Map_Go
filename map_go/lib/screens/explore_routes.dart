@@ -64,29 +64,14 @@ class ExploreRoutesPage extends StatelessWidget {
                     );
                   }
 
-                  // SHOW DEMO ROUTES IF DATABASE EMPTY
+                  // SHOW EMPTY STATE IF DATABASE EMPTY
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-
-                    final demoRoutes = [
-                      {"name": "Cubbon Park Loop", "area": "Bangalore", "rating": 4.8},
-                      {"name": "MG Road Stretch", "area": "Central Bangalore", "rating": 4.5},
-                      {"name": "Indiranagar Streets", "area": "Indiranagar", "rating": 4.2},
-                    ];
-
-                    return ListView.builder(
-                      itemCount: demoRoutes.length,
-                      itemBuilder: (context, index) {
-
-                        final route = demoRoutes[index];
-
-                        return RouteTile(
-                          name: route["name"] as String,
-                          area: route["area"] as String,
-                          rating: route["rating"] as double,
-                          onTap: () {},
-                        );
-
-                      },
+                    return const Center(
+                      child: Text(
+                        "No routes yet. Be the first to upload one!",
+                        style: TextStyle(color: Colors.white54),
+                        textAlign: TextAlign.center,
+                      ),
                     );
                   }
 
@@ -96,19 +81,20 @@ class ExploreRoutesPage extends StatelessWidget {
                     itemCount: routes.length,
                     itemBuilder: (context, index) {
 
-                      final route = routes[index];
+                      final doc = routes[index];
+                      final data = doc.data() as Map<String, dynamic>;
 
                       return RouteTile(
-                        name: route["name"],
-                        area: route["area"],
-                        rating: (route["rating"] as num).toDouble(),
+                        name: data['name'] ?? 'Unnamed Route',
+                        area: data['address'] ?? '',
+                        rating: (data['safetyRating'] as num? ?? 0).toDouble(),
                         onTap: () {
 
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (_) => RouteDetailPage(
-                                routeId: route.id,
+                                routeId: doc.id,
                               ),
                             ),
                           );

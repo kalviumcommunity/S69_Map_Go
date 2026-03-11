@@ -1,14 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:map_go/screens/profile_page.dart';
-import 'package:map_go/screens/route_detail_page.dart';
 import 'package:map_go/screens/explore_routes.dart';
 import 'package:map_go/screens/start_route_page.dart';
 import 'package:map_go/screens/upload_route_page.dart';
-import 'package:map_go/widgets/route_tile.dart';
 //minor update to home page UI and added quick action buttons
 class HomePage extends StatefulWidget {
   final User user;
@@ -272,87 +269,6 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 12),
 
               _buildQuickActions(context),
-
-              const SizedBox(height: 22),
-
-              const Text(
-                "Popular Routes",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-
-              const SizedBox(height: 10),
-
-              Expanded(
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection("routes")
-                      .snapshots(),
-
-                  builder: (context, snapshot) {
-
-                    if (snapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    }
-
-                    if (!snapshot.hasData ||
-                        snapshot.data!.docs.isEmpty) {
-
-                      final demoRoutes = [
-                        {"name": "Cubbon Park Loop", "area": "Bangalore", "rating": 4.8},
-                        {"name": "MG Road Stretch", "area": "Central Bangalore", "rating": 4.5},
-                        {"name": "Indiranagar Streets", "area": "Indiranagar", "rating": 4.2},
-                      ];
-
-                      return ListView.builder(
-                        itemCount: demoRoutes.length,
-                        itemBuilder: (context, index) {
-
-                          final route = demoRoutes[index];
-
-                          return RouteTile(
-                            name: route["name"] as String,
-                            area: route["area"] as String,
-                            rating: route["rating"] as double,
-                            onTap: () {},
-                          );
-
-                        },
-                      );
-                    }
-
-                    final routes = snapshot.data!.docs;
-
-                    return ListView.builder(
-                      itemCount: routes.length,
-                      itemBuilder: (context, index) {
-
-                        final route = routes[index];
-
-                        return RouteTile(
-                          name: route["name"],
-                          area: route["area"],
-                          rating: (route["rating"] as num).toDouble(),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => RouteDetailPage(
-                                  routeId: route.id,
-                                ),
-                              ),
-                            );
-                          },
-                        );
-
-                      },
-                    );
-
-                  },
-                ),
-              ),
 
             ],
           ),
