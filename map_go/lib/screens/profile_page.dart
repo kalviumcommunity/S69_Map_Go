@@ -18,6 +18,7 @@ class _ProfilePageState extends State<ProfilePage> {
   final user = FirebaseAuth.instance.currentUser!;
   final firestore = FirebaseFirestore.instance;
 
+  final nameController = TextEditingController();
   final bioController = TextEditingController();
 
   String userType = "Runner";
@@ -38,10 +39,13 @@ class _ProfilePageState extends State<ProfilePage> {
       final data = doc.data()!;
 
       setState(() {
+        nameController.text = data["displayName"] ?? user.displayName ?? "";
         bioController.text = data["bio"] ?? "";
         userType = data["userType"] ?? "Runner";
         profileImageUrl = data["profileImage"];
       });
+    } else {
+      nameController.text = user.displayName ?? "";
     }
   }
 
@@ -73,7 +77,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final imageUrl = await uploadImage();
 
     await firestore.collection("users").doc(user.uid).set({
-      "name": user.displayName,
+      "displayName": nameController.text,
       "email": user.email,
       "bio": bioController.text,
       "userType": userType,
@@ -160,11 +164,18 @@ class _ProfilePageState extends State<ProfilePage> {
 
                 const SizedBox(height: 16),
 
-                Text(
-                  user.displayName ?? "Your Name",
-                  style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold),
+                // BIO FIELD
+                _inputCard(
+                  child: TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      labelText: "Name",
+                      hintText:
+                          nameController.text.isEmpty ? "Enter your name" : "",
+                      border: InputBorder.none,
+                      suffixIcon: const Icon(Icons.edit),
+                    ),
+                  ),
                 ),
 
                 const SizedBox(height: 4),
