@@ -20,8 +20,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
-  GoogleMapController? _mapController;
   Position? _currentPosition;
   final Set<Marker> _markers = {};
 
@@ -251,9 +249,6 @@ class _HomePageState extends State<HomePage> {
                   child: _currentPosition == null
                       ? const Center(child: CircularProgressIndicator())
                       : GoogleMap(
-                          onMapCreated: (controller) {
-                            _mapController = controller;
-                          },
                           initialCameraPosition: CameraPosition(
                             target: LatLng(
                               _currentPosition!.latitude,
