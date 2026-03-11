@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class UploadRoutePage extends StatefulWidget {
@@ -8,14 +10,61 @@ class UploadRoutePage extends StatefulWidget {
 }
 
 class _UploadRoutePageState extends State<UploadRoutePage> {
+  final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController locationController = TextEditingController();
-  final TextEditingController distanceController = TextEditingController();
-  final TextEditingController descriptionController = TextEditingController();
+  final nameController = TextEditingController();
+  final addressController = TextEditingController();
+  final distanceController = TextEditingController();
+  final descriptionController = TextEditingController();
 
+  String routeType = "Runner";
   String difficulty = "Easy";
-  int rating = 0;
+  int safetyRating = 0;
+  bool _isUploading = false;
+
+  Future<void> _uploadRoute() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isUploading = true);
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception("You must be logged in to upload a route.");
+
+      final Map<String, dynamic> data = {
+        'name': nameController.text.trim(),
+        'address': addressController.text.trim(),
+        'distance': distanceController.text.trim(),
+        'description': descriptionController.text.trim(),
+        'routeType': routeType,
+        'difficulty': difficulty,
+        'safetyRating': safetyRating,
+        'createdBy': user.displayName ?? 'Anonymous',
+        'createdAt': FieldValue.serverTimestamp(),
+        'reviews': [],
+        'photos': [],
+      };
+
+      await FirebaseFirestore.instance
+          .collection('routes')
+          .add(data);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Route uploaded successfully!')),
+        );
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to upload route: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUploading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,187 +73,141 @@ class _UploadRoutePageState extends State<UploadRoutePage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0F1115),
         elevation: 0,
-        title: const Text("Upload Route"),
+        title: const Text("Upload New Route"),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+      body: Form(
+        key: _formKey,
         child: ListView(
+          padding: const EdgeInsets.all(16),
           children: [
-
-            const SizedBox(height: 10),
-
-            const Text(
-              "Route Name",
-              style: TextStyle(color: Colors.white70),
+            _buildTextField(nameController, "Route Name"),
+            _buildTextField(addressController, "Address / General Location"),
+            _buildTextField(distanceController, "Distance (e.g., 5 km)"),
+            _buildDropdown<String>(
+              label: "Route Type",
+              value: routeType,
+              items: ["Runner", "Cyclist", "Both"],
+              onChanged: (value) => setState(() => routeType = value!),
             ),
-
-            const SizedBox(height: 8),
-
-            _inputField(nameController, "Enter route name"),
-
-            const SizedBox(height: 20),
-
-            const Text(
-              "Location",
-              style: TextStyle(color: Colors.white70),
+            _buildDropdown<String>(
+              label: "Difficulty",
+              value: difficulty,
+              items: ["Easy", "Moderate", "Hard"],
+              onChanged: (value) => setState(() => difficulty = value!),
             ),
-
-            const SizedBox(height: 8),
-
-            _inputField(locationController, "Enter location"),
-
-            const SizedBox(height: 20),
-
-            const Text(
-              "Distance (km)",
-              style: TextStyle(color: Colors.white70),
-            ),
-
-            const SizedBox(height: 8),
-
-            _inputField(distanceController, "Enter distance"),
-
-            const SizedBox(height: 20),
-
-            const Text(
-              "Difficulty",
-              style: TextStyle(color: Colors.white70),
-            ),
-
-            const SizedBox(height: 8),
-
-            _difficultyDropdown(),
-
-            const SizedBox(height: 20),
-
-            const Text(
-              "Description",
-              style: TextStyle(color: Colors.white70),
-            ),
-
-            const SizedBox(height: 8),
-
-            _descriptionField(),
-
-            const SizedBox(height: 20),
-
-            const Text(
-              "Rating",
-              style: TextStyle(color: Colors.white70),
-            ),
-
-            const SizedBox(height: 8),
-
-            _ratingBar(),
-
+            _buildRatingBar(),
+            _buildTextField(descriptionController, "Description", maxLines: 4),
             const SizedBox(height: 30),
-
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00C853),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              onPressed: () {
-                // Later we connect to Firebase / database
-                print("Route Uploaded");
-              },
-              child: const Text(
-                "Upload Route",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            )
+            _isUploading
+                ? const Center(child: CircularProgressIndicator())
+                : ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF00C853),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: _uploadRoute,
+                    child: const Text(
+                      "Upload Route",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
           ],
         ),
       ),
     );
   }
 
-  Widget _inputField(TextEditingController controller, String hint) {
-    return TextField(
-      controller: controller,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(color: Colors.grey),
-        filled: true,
-        fillColor: const Color(0xFF1C1F26),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-      ),
-    );
-  }
-
-  Widget _descriptionField() {
-    return TextField(
-      controller: descriptionController,
-      maxLines: 4,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        hintText: "Describe the route...",
-        hintStyle: const TextStyle(color: Colors.grey),
-        filled: true,
-        fillColor: const Color(0xFF1C1F26),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-      ),
-    );
-  }
-
-  Widget _difficultyDropdown() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1C1F26),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: DropdownButton(
-        dropdownColor: const Color(0xFF1C1F26),
-        value: difficulty,
-        underline: const SizedBox(),
+  Widget _buildTextField(TextEditingController controller, String label,
+      {int maxLines = 1}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        maxLines: maxLines,
         style: const TextStyle(color: Colors.white),
-        items: ["Easy", "Moderate", "Hard"]
-            .map(
-              (e) => DropdownMenuItem(
-                value: e,
-                child: Text(e),
-              ),
-            )
-            .toList(),
-        onChanged: (value) {
-          setState(() {
-            difficulty = value!;
-          });
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(color: Colors.white70),
+          filled: true,
+          fillColor: const Color(0xFF1C1F26),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+        ),
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) {
+            return 'Please enter $label';
+          }
+          return null;
         },
       ),
     );
   }
 
-  Widget _ratingBar() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(5, (index) {
-        return IconButton(
-          onPressed: () {
-            setState(() {
-              rating = index + 1;
-            });
-          },
-          icon: Icon(
-            index < rating ? Icons.star : Icons.star_border,
-            color: Colors.amber,
+  Widget _buildDropdown<T>(
+      {required String label,
+      required T value,
+      required List<T> items,
+      required ValueChanged<T?> onChanged}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: DropdownButtonFormField<T>(
+        value: value,
+        items: items.map((T item) {
+          return DropdownMenuItem<T>(
+            value: item,
+            child: Text(item.toString()),
+          );
+        }).toList(),
+        onChanged: onChanged,
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(color: Colors.white70),
+          filled: true,
+          fillColor: const Color(0xFF1C1F26),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
           ),
-        );
-      }),
+        ),
+        dropdownColor: const Color(0xFF1C1F26),
+        style: const TextStyle(color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildRatingBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("Safety Rating", style: TextStyle(color: Colors.white70)),
+          const SizedBox(height: 4),
+          Row(
+            children: List.generate(5, (index) {
+              return IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: () => setState(() => safetyRating = index + 1),
+                icon: Icon(
+                  index < safetyRating ? Icons.star : Icons.star_border,
+                  color: Colors.amber,
+                  size: 32,
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
     );
   }
 }
