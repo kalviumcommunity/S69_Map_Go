@@ -4,7 +4,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:map_go/screens/profile_page.dart';
 import 'package:map_go/screens/explore_routes.dart';
-import 'package:map_go/screens/start_route_page.dart';
 import 'package:map_go/screens/upload_route_page.dart';
 //minor update to home page UI and added quick action buttons
 class HomePage extends StatefulWidget {
@@ -140,10 +139,21 @@ class _HomePageState extends State<HomePage> {
               title: const Text("Start Route"),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const StartRoutePage(),
+                showDialog(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    backgroundColor: const Color(0xFF1E1E1E),
+                    title: const Text("Coming Soon"),
+                    content: const Text(
+                      "Live route tracking is coming in a future update!",
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text("OK", style: TextStyle(color: Color(0xFF4CAF50))),
+                      ),
+                    ],
                   ),
                 );
               },
@@ -229,33 +239,34 @@ class _HomePageState extends State<HomePage> {
 
               const SizedBox(height: 20),
 
-              Container(
-                height: 210,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.4),
-                      blurRadius: 10,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: _currentPosition == null
-                      ? const Center(child: CircularProgressIndicator())
-                      : GoogleMap(
-                          initialCameraPosition: CameraPosition(
-                            target: LatLng(
-                              _currentPosition!.latitude,
-                              _currentPosition!.longitude,
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.4),
+                        blurRadius: 10,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: _currentPosition == null
+                        ? const Center(child: CircularProgressIndicator())
+                        : GoogleMap(
+                            initialCameraPosition: CameraPosition(
+                              target: LatLng(
+                                _currentPosition!.latitude,
+                                _currentPosition!.longitude,
+                              ),
+                              zoom: 15,
                             ),
-                            zoom: 15,
+                            markers: _markers,
+                            myLocationEnabled: true,
                           ),
-                          markers: _markers,
-                          myLocationEnabled: true,
-                        ),
+                  ),
                 ),
               ),
 
@@ -284,10 +295,21 @@ class _HomePageState extends State<HomePage> {
         _buildActionCard(
           context,
           Icons.route, "Start", () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const StartRoutePage(),
+            showDialog(
+              context: context,
+              builder: (_) => AlertDialog(
+                backgroundColor: const Color(0xFF1E1E1E),
+                title: const Text("Coming Soon"),
+                content: const Text(
+                  "Live route tracking is coming in a future update!",
+                  style: TextStyle(color: Colors.white70),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("OK", style: TextStyle(color: Color(0xFF4CAF50))),
+                  ),
+                ],
               ),
             );
           }),
